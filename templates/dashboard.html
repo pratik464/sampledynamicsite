@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — InkFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-wrap">
+  <div class="container">
+
+    <div class="dashboard-header">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back, <strong>{{ current_user.username }}</strong></p>
+      </div>
+      <a href="{{ url_for('new_post') }}" class="btn-primary">+ New Post</a>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-number">{{ stats.total }}</div>
+        <div class="stat-label">Total Posts</div>
+      </div>
+      <div class="stat-card stat-card--green">
+        <div class="stat-icon">🌐</div>
+        <div class="stat-number">{{ stats.published }}</div>
+        <div class="stat-label">Published</div>
+      </div>
+      <div class="stat-card stat-card--amber">
+        <div class="stat-icon">✏️</div>
+        <div class="stat-number">{{ stats.draft }}</div>
+        <div class="stat-label">Drafts</div>
+      </div>
+      <div class="stat-card stat-card--blue">
+        <div class="stat-icon">👁️</div>
+        <div class="stat-number">{{ stats.views }}</div>
+        <div class="stat-label">Total Views</div>
+      </div>
+      <div class="stat-card stat-card--purple">
+        <div class="stat-icon">💬</div>
+        <div class="stat-number">{{ stats.comments }}</div>
+        <div class="stat-label">Comments</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- POSTS TABLE -->
+      <div class="dash-card dash-card--wide">
+        <div class="dash-card-header">
+          <h3>Your Posts</h3>
+          <a href="{{ url_for('new_post') }}" class="btn-sm">+ Add</a>
+        </div>
+        {% if posts %}
+        <div class="table-wrap">
+          <table class="posts-table">
+            <thead>
+              <tr><th>Title</th><th>Status</th><th>Category</th><th>Views</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {% for p in posts %}
+              <tr>
+                <td class="td-title">
+                  {% if p.status == 'published' %}
+                  <a href="{{ url_for('post_detail', slug=p.slug) }}">{{ p.title }}</a>
+                  {% else %}{{ p.title }}{% endif %}
+                </td>
+                <td><span class="status-badge status-{{ p.status }}">{{ p.status }}</span></td>
+                <td>{{ p.category }}</td>
+                <td>{{ p.views }}</td>
+                <td class="td-date">{{ p.created_at[:10] }}</td>
+                <td class="td-actions">
+                  <a href="{{ url_for('edit_post', pid=p.id) }}" class="btn-icon" title="Edit">✏️</a>
+                  <form method="post" action="{{ url_for('delete_post', pid=p.id) }}" style="display:inline"
+                        onsubmit="return confirm('Delete this post?')">
+                    <button type="submit" class="btn-icon btn-icon--danger" title="Delete">🗑️</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state small">
+          <p>No posts yet. <a href="{{ url_for('new_post') }}">Write your first post →</a></p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- RECENT COMMENTS -->
+      <div class="dash-card">
+        <div class="dash-card-header"><h3>Recent Comments</h3></div>
+        {% if recent_comments %}
+        <ul class="comment-list-sm">
+          {% for c in recent_comments %}
+          <li class="comment-sm">
+            <div class="comment-sm-avatar">{{ c.author_name[0].upper() }}</div>
+            <div>
+              <div class="comment-sm-name">{{ c.author_name }} <span>on <a href="{{ url_for('post_detail', slug=c.slug) }}">{{ c.post_title[:30] }}…</a></span></div>
+              <p class="comment-sm-text">{{ c.content[:80] }}…</p>
+              <small>{{ c.created_at[:10] }}</small>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state small"><p>No comments yet.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

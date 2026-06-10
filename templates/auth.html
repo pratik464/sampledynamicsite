@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode == 'login' %}Login{% else %}Create Account{% endif %} — InkFlow{% endblock %}
+{% block content %}
+
+<div class="auth-wrap">
+  <div class="auth-art">
+    <div class="auth-art-inner">
+      <div class="auth-brand">Ink<span>Flow</span></div>
+      <blockquote>"The scariest moment is always just before you start."</blockquote>
+      <cite>— Stephen King</cite>
+      <div class="auth-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-form-inner">
+      <div class="auth-tabs">
+        <a href="{{ url_for('login') }}" class="auth-tab {% if mode == 'login' %}active{% endif %}">Login</a>
+        <a href="{{ url_for('register') }}" class="auth-tab {% if mode == 'register' %}active{% endif %}">Register</a>
+      </div>
+
+      {% if mode == 'login' %}
+      <h2>Welcome back</h2>
+      <p class="auth-sub">Sign in to manage your posts and account.</p>
+      <form method="post" class="auth-form">
+        <div class="form-group">
+          <label>Username or Email</label>
+          <input type="text" name="username" required autofocus placeholder="your_username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary btn-block">Sign In</button>
+      </form>
+      <p class="auth-hint">No account? <a href="{{ url_for('register') }}">Create one free →</a></p>
+      <div class="demo-creds">
+        <strong>Demo:</strong> username <code>admin</code> / password <code>admin123</code>
+      </div>
+
+      {% else %}
+      <h2>Create account</h2>
+      <p class="auth-sub">Join InkFlow and start writing today.</p>
+      <form method="post" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" name="username" required autofocus placeholder="your_username">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" required placeholder="you@email.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" required placeholder="At least 6 characters">
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" name="password2" required placeholder="Repeat password">
+        </div>
+        <button type="submit" class="btn-primary btn-block">Create Account</button>
+      </form>
+      <p class="auth-hint">Already have an account? <a href="{{ url_for('login') }}">Sign in →</a></p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

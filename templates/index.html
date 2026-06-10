@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}InkFlow — Stories Worth Reading{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Welcome to InkFlow</div>
+    <h1 class="hero-title">Stories,<br><em>Worth Reading.</em></h1>
+    <p class="hero-sub">Discover thoughtful writing on technology, design, and the craft of building things that matter.</p>
+    <form class="hero-search" action="{{ url_for('index') }}" method="get">
+      <input type="text" name="q" placeholder="Search articles…" value="{{ search }}">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+  <div class="hero-art">
+    <div class="art-blob"></div>
+    <div class="art-lines">
+      {% for i in range(8) %}<div class="art-line" style="--i:{{i}}"></div>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED -->
+{% if featured and not search and not category %}
+<section class="section featured-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Featured</span>
+      <h2>Most Read</h2>
+    </div>
+    <div class="featured-grid">
+      {% for p in featured %}
+      <a href="{{ url_for('post_detail', slug=p.slug) }}" class="featured-card{% if loop.first %} featured-card--main{% endif %}">
+        <div class="featured-bg">
+          {% if p.cover_image %}
+          <img src="{{ url_for('static', filename='uploads/' + p.cover_image) }}" alt="">
+          {% else %}
+          <div class="featured-placeholder" data-cat="{{ p.category }}"></div>
+          {% endif %}
+        </div>
+        <div class="featured-content">
+          <span class="tag">{{ p.category }}</span>
+          <h3>{{ p.title }}</h3>
+          <div class="meta">By {{ p.author_name }} · {{ p.views }} views</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- POSTS GRID -->
+<section class="section posts-section">
+  <div class="container posts-layout">
+    <div class="posts-main">
+      <div class="posts-header">
+        {% if search %}<h2>Results for "{{ search }}"</h2>
+        {% elif category %}<h2>Category: {{ category }}</h2>
+        {% else %}<h2>Latest Articles</h2>{% endif %}
+        <span class="post-count">{{ posts|length }} post{% if posts|length != 1 %}s{% endif %}</span>
+      </div>
+
+      {% if posts %}
+      <div class="posts-grid">
+        {% for p in posts %}
+        <article class="post-card">
+          <a href="{{ url_for('post_detail', slug=p.slug) }}" class="post-card-img">
+            {% if p.cover_image %}
+            <img src="{{ url_for('static', filename='uploads/' + p.cover_image) }}" alt="{{ p.title }}">
+            {% else %}
+            <div class="post-card-placeholder" data-cat="{{ p.category }}"></div>
+            {% endif %}
+          </a>
+          <div class="post-card-body">
+            <div class="post-card-meta">
+              <span class="tag tag--sm">{{ p.category }}</span>
+              <span class="date">{{ p.created_at[:10] }}</span>
+            </div>
+            <h3><a href="{{ url_for('post_detail', slug=p.slug) }}">{{ p.title }}</a></h3>
+            <p class="excerpt">{{ p.excerpt or (p.content | striptags)[:120] }}…</p>
+            <div class="post-card-footer">
+              <span class="author-chip">{{ p.author_name[0].upper() }} {{ p.author_name }}</span>
+              <span class="views-chip">{{ p.views }} views</span>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <!-- PAGINATION -->
+      {% if total_pages > 1 %}
+      <div class="pagination">
+        {% if page > 1 %}
+        <a href="?page={{ page-1 }}{% if search %}&q={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}" class="page-btn">← Prev</a>
+        {% endif %}
+        {% for n in range(1, total_pages+1) %}
+        <a href="?page={{ n }}{% if search %}&q={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}"
+           class="page-btn {% if n == page %}active{% endif %}">{{ n }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="?page={{ page+1 }}{% if search %}&q={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}" class="page-btn">Next →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No posts found</h3>
+        <p>{% if search %}Try a different search term.{% else %}Check back soon for new content.{% endif %}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h4>Categories</h4>
+        <ul class="category-list">
+          <li><a href="{{ url_for('index') }}" class="{% if not category %}active{% endif %}">All Posts</a></li>
+          {% for c in categories %}
+          <li><a href="?category={{ c.category }}" class="{% if category == c.category %}active{% endif %}">{{ c.category }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% if not current_user %}
+      <div class="sidebar-card sidebar-cta">
+        <h4>Start Writing</h4>
+        <p>Share your knowledge with the InkFlow community.</p>
+        <a href="{{ url_for('register') }}" class="btn-primary">Join Free</a>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }} — InkFlow{% endblock %}
+{% block content %}
+
+<div class="post-detail-wrap">
+  <div class="post-detail-container">
+
+    <!-- POST HEADER -->
+    <header class="post-header">
+      <div class="post-breadcrumb"><a href="{{ url_for('index') }}">Blog</a> / <span>{{ post.category }}</span></div>
+      <span class="tag tag--lg">{{ post.category }}</span>
+      <h1 class="post-title">{{ post.title }}</h1>
+      <div class="post-meta-bar">
+        <div class="author-info">
+          <div class="author-avatar-lg">{{ post.author_name[0].upper() }}</div>
+          <div>
+            <div class="author-name">{{ post.author_name }}</div>
+            <div class="post-date">{{ post.created_at[:10] }} · {{ post.views }} views</div>
+          </div>
+        </div>
+        {% if current_user and current_user.id == post.author_id %}
+        <div class="post-actions">
+          <a href="{{ url_for('edit_post', pid=post.id) }}" class="btn-outline">Edit</a>
+          <form method="post" action="{{ url_for('delete_post', pid=post.id) }}" onsubmit="return confirm('Delete this post?')">
+            <button type="submit" class="btn-danger">Delete</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      {% if post.tags %}
+      <div class="post-tags">
+        {% for t in post.tags.split(',') %}
+        <span class="pill">{{ t.strip() }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </header>
+
+    {% if post.cover_image %}
+    <div class="post-cover">
+      <img src="{{ url_for('static', filename='uploads/' + post.cover_image) }}" alt="{{ post.title }}">
+    </div>
+    {% else %}
+    <div class="post-cover-placeholder" data-cat="{{ post.category }}"></div>
+    {% endif %}
+
+    <!-- CONTENT -->
+    <div class="post-content">{{ post.content | safe }}</div>
+
+    <!-- AUTHOR BIO -->
+    <div class="author-box">
+      <div class="author-avatar-xl">{{ post.author_name[0].upper() }}</div>
+      <div class="author-box-info">
+        <div class="author-box-name">{{ post.author_name }}</div>
+        <p>{{ post.author_bio or 'A passionate writer on InkFlow.' }}</p>
+      </div>
+    </div>
+
+    <!-- RELATED -->
+    {% if related %}
+    <section class="related-section">
+      <h3>More in {{ post.category }}</h3>
+      <div class="related-grid">
+        {% for r in related %}
+        <a href="{{ url_for('post_detail', slug=r.slug) }}" class="related-card">
+          <div class="related-placeholder" data-cat="{{ r.category }}"></div>
+          <div class="related-body">
+            <span class="tag tag--sm">{{ r.category }}</span>
+            <h4>{{ r.title }}</h4>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- COMMENTS -->
+    <section class="comments-section">
+      <h3>Comments <span class="comment-count">({{ comments|length }})</span></h3>
+
+      {% if comments %}
+      <div class="comments-list">
+        {% for c in comments %}
+        <div class="comment">
+          <div class="comment-avatar">{{ c.author_name[0].upper() }}</div>
+          <div class="comment-body">
+            <div class="comment-meta"><strong>{{ c.author_name }}</strong><span>{{ c.created_at[:10] }}</span></div>
+            <p>{{ c.content }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="comment-form-wrap">
+        <h4>Leave a Comment</h4>
+        <form method="post" action="{{ url_for('add_comment', slug=post.slug) }}" class="comment-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" name="name" required placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" name="email" required placeholder="your@email.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Comment</label>
+            <textarea name="content" rows="4" required placeholder="Share your thoughts…"></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Post Comment</button>
+        </form>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

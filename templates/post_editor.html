@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}{% if post %}Edit Post{% else %}New Post{% endif %} — InkFlow{% endblock %}
+{% block content %}
+
+<div class="editor-wrap">
+  <div class="container">
+    <div class="editor-header">
+      <div>
+        <h1>{% if post %}Edit Post{% else %}Write a New Post{% endif %}</h1>
+        <p>{% if post %}Update your article below.{% else %}Share your ideas with the world.{% endif %}</p>
+      </div>
+      <a href="{{ url_for('dashboard') }}" class="btn-outline">← Back</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="editor-form">
+      <div class="editor-layout">
+
+        <!-- MAIN EDITOR -->
+        <div class="editor-main">
+          <div class="form-group">
+            <label>Post Title *</label>
+            <input type="text" name="title" class="input-xl" placeholder="Give your post a compelling title…"
+                   value="{{ form.title if form else '' }}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Content *</label>
+            <div class="editor-toolbar">
+              <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+              <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+              <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+              <span class="toolbar-sep"></span>
+              <button type="button" data-cmd="h2" title="Heading">H2</button>
+              <button type="button" data-cmd="h3" title="Subheading">H3</button>
+              <span class="toolbar-sep"></span>
+              <button type="button" data-cmd="ul" title="Bullet list">• List</button>
+              <button type="button" data-cmd="ol" title="Numbered list">1. List</button>
+              <button type="button" data-cmd="quote" title="Blockquote">" Quote</button>
+              <span class="toolbar-sep"></span>
+              <button type="button" data-cmd="link" title="Insert link">🔗 Link</button>
+            </div>
+            <div id="editor" class="rich-editor" contenteditable="true">
+              {{ form.content | safe if form and form.content else '' }}
+            </div>
+            <textarea name="content" id="content-hidden" style="display:none"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Excerpt <small>(shown in post cards)</small></label>
+            <textarea name="excerpt" rows="2" placeholder="A short description of the post…">{{ form.excerpt if form else '' }}</textarea>
+          </div>
+        </div>
+
+        <!-- SIDEBAR OPTIONS -->
+        <div class="editor-sidebar">
+          <div class="editor-side-card">
+            <h4>Publish</h4>
+            <div class="form-group">
+              <label>Status</label>
+              <select name="status">
+                <option value="draft" {% if not form or form.status == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="published" {% if form and form.status == 'published' %}selected{% endif %}>Published</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary btn-block">
+              {% if post %}Update Post{% else %}Publish Post{% endif %}
+            </button>
+          </div>
+
+          <div class="editor-side-card">
+            <h4>Settings</h4>
+            <div class="form-group">
+              <label>Category</label>
+              <select name="category">
+                {% for cat in ['General','Technology','Design','Programming','Lifestyle','Science','Education','Business'] %}
+                <option {% if form and form.category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tags <small>(comma-separated)</small></label>
+              <input type="text" name="tags" placeholder="python, flask, web…" value="{{ form.tags if form else '' }}">
+            </div>
+          </div>
+
+          <div class="editor-side-card">
+            <h4>Cover Image</h4>
+            {% if form and form.cover_image %}
+            <div class="current-cover">
+              <img src="{{ url_for('static', filename='uploads/' + form.cover_image) }}" alt="Current cover">
+              <p class="cover-hint">Upload a new image to replace</p>
+            </div>
+            {% endif %}
+            <div class="upload-zone" id="upload-zone">
+              <input type="file" name="cover_image" id="cover-input" accept="image/*">
+              <div class="upload-label">
+                <span class="upload-icon">🖼️</span>
+                <span>Click to upload image</span>
+                <small>PNG, JPG, GIF up to 5MB</small>
+              </div>
+              <img id="cover-preview" class="cover-preview" style="display:none">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

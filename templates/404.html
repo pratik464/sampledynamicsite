@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Not Found — InkFlow{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-inner">
+    <div class="error-num">404</div>
+    <h2>{{ msg or "Page not found" }}</h2>
+    <p>The page you're looking for doesn't exist or has been moved.</p>
+    <a href="{{ url_for('index') }}" class="btn-primary">← Back to Blog</a>
+  </div>
+</div>
+{% endblock %}
