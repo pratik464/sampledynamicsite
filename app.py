@@ -348,7 +348,9 @@ def not_found(e):
 def forbidden(e):
     return render_template('404.html', msg="You don't have permission to access this page."), 403
 
+# Run on every startup (local and gunicorn)
+init_db()
+os.makedirs('static/uploads', exist_ok=True)
+
 if __name__ == '__main__':
-    init_db()
-    os.makedirs('static/uploads', exist_ok=True)
     app.run(debug=True)
