@@ -38,7 +38,7 @@
 
     {% if post.cover_image %}
     <div class="post-cover">
-      <img src="{{ url_for('static', filename='uploads/' + post.cover_image) }}" alt="{{ post.title }}">
+      <img src="{{ post.cover_image }}" alt="{{ post.title }}">
     </div>
     {% else %}
     <div class="post-cover-placeholder" data-cat="{{ post.category }}"></div>

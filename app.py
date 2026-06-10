@@ -4,10 +4,17 @@ import sqlite3, os, re
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+    cloud_name='de8knsp2f',
+    api_key='133431678326252',
+    api_secret='a_nPl6jQeEvM4bP58Vw-X2RVmoQ'
+)
 
 app = Flask(__name__)
 app.secret_key = 'blog_secret_key_2024'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
@@ -58,13 +65,11 @@ def init_db():
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (post_id) REFERENCES posts(id)
     )''')
-    # Seed admin
     pw = generate_password_hash('admin123')
     try:
         c.execute("INSERT INTO users (username,email,password,bio) VALUES (?,?,?,?)",
                   ('admin','admin@blog.com',pw,'The blog administrator.'))
     except: pass
-    # Seed demo posts
     try:
         c.execute("SELECT id FROM users WHERE username='admin'")
         uid = c.fetchone()[0]
@@ -113,6 +118,13 @@ def get_current_user():
         conn.close()
         return user
     return None
+
+def upload_image(file):
+    """Upload file to Cloudinary, return secure URL or empty string."""
+    if file and file.filename and allowed_file(file.filename):
+        result = cloudinary.uploader.upload(file, folder='inkflow')
+        return result.get('secure_url', '')
+    return ''
 
 @app.context_processor
 def inject_user():
@@ -166,17 +178,15 @@ def post_detail(slug):
 def add_comment(slug):
     conn = get_db()
     post = conn.execute('SELECT id FROM posts WHERE slug=?', (slug,)).fetchone()
-    if post:
-        name = request.form.get('name','').strip()
-        email = request.form.get('email','').strip()
-        content = request.form.get('content','').strip()
-        if name and email and content:
-            conn.execute('INSERT INTO comments (post_id,author_name,author_email,content) VALUES (?,?,?,?)',
-                         (post['id'], name, email, content))
-            conn.commit()
-            flash('Comment posted!', 'success')
-        else:
-            flash('All fields are required.', 'danger')
+    if not post: conn.close(); abort(404)
+    name = request.form.get('name','').strip()
+    email = request.form.get('email','').strip()
+    content = request.form.get('content','').strip()
+    if name and email and content:
+        conn.execute('INSERT INTO comments (post_id,author_name,author_email,content) VALUES (?,?,?,?)',
+                     (post['id'], name, email, content))
+        conn.commit()
+        flash('Comment posted!', 'success')
     conn.close()
     return redirect(url_for('post_detail', slug=slug))
 
@@ -184,8 +194,8 @@ def add_comment(slug):
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    conn = get_db()
     uid = session['user_id']
+    conn = get_db()
     stats = {
         'total': conn.execute('SELECT COUNT(*) FROM posts WHERE author_id=?',(uid,)).fetchone()[0],
         'published': conn.execute('SELECT COUNT(*) FROM posts WHERE author_id=? AND status="published"',(uid,)).fetchone()[0],
@@ -199,7 +209,7 @@ def dashboard():
     conn.close()
     return render_template('dashboard.html', stats=stats, posts=posts, recent_comments=recent_comments)
 
-# ── PAGE 4: POST EDITOR (Create / Edit) ──────────────────────────────────────
+# ── PAGE 4: POST EDITOR ───────────────────────────────────────────────────────
 @app.route('/post/new', methods=['GET','POST'])
 @login_required
 def new_post():
@@ -212,11 +222,7 @@ def new_post():
         status = request.form.get('status','draft')
         cover_image = ''
         if 'cover_image' in request.files:
-            f = request.files['cover_image']
-            if f and f.filename and allowed_file(f.filename):
-                fname = secure_filename(f.filename)
-                f.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-                cover_image = fname
+            cover_image = upload_image(request.files['cover_image'])
         if not title or not content:
             flash('Title and content are required.', 'danger')
             return render_template('post_editor.html', post=None, form=request.form)
@@ -249,11 +255,9 @@ def edit_post(pid):
         status = request.form.get('status','draft')
         cover_image = post['cover_image']
         if 'cover_image' in request.files:
-            f = request.files['cover_image']
-            if f and f.filename and allowed_file(f.filename):
-                fname = secure_filename(f.filename)
-                f.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-                cover_image = fname
+            new_url = upload_image(request.files['cover_image'])
+            if new_url:
+                cover_image = new_url
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         conn.execute('''UPDATE posts SET title=?,content=?,excerpt=?,cover_image=?,category=?,tags=?,status=?,updated_at=? WHERE id=?''',
                      (title,content,excerpt,cover_image,category,tags,status,now,pid))
@@ -350,7 +354,6 @@ def forbidden(e):
 
 # Run on every startup (local and gunicorn)
 init_db()
-os.makedirs('static/uploads', exist_ok=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

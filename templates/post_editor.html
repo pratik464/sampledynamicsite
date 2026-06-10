@@ -87,7 +87,7 @@
             <h4>Cover Image</h4>
             {% if form and form.cover_image %}
             <div class="current-cover">
-              <img src="{{ url_for('static', filename='uploads/' + form.cover_image) }}" alt="Current cover">
+              <img src="{{ form.cover_image }}" alt="Current cover">
               <p class="cover-hint">Upload a new image to replace</p>
             </div>
             {% endif %}

@@ -34,7 +34,7 @@
       <a href="{{ url_for('post_detail', slug=p.slug) }}" class="featured-card{% if loop.first %} featured-card--main{% endif %}">
         <div class="featured-bg">
           {% if p.cover_image %}
-          <img src="{{ url_for('static', filename='uploads/' + p.cover_image) }}" alt="">
+          <img src="{{ p.cover_image }}" alt="">
           {% else %}
           <div class="featured-placeholder" data-cat="{{ p.category }}"></div>
           {% endif %}
@@ -68,7 +68,7 @@
         <article class="post-card">
           <a href="{{ url_for('post_detail', slug=p.slug) }}" class="post-card-img">
             {% if p.cover_image %}
-            <img src="{{ url_for('static', filename='uploads/' + p.cover_image) }}" alt="{{ p.title }}">
+            <img src="{{ p.cover_image }}" alt="{{ p.title }}">
             {% else %}
             <div class="post-card-placeholder" data-cat="{{ p.category }}"></div>
             {% endif %}
